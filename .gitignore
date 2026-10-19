@@ -1,0 +1,21 @@
+# Dependencias, compilación y temporales
+**/node_modules/
+**/dist/
+**/.angular/
+**/target/
+*.class
+
+# Datos locales de H2 - no versionar información personal ni reservas
+/database/data/*
+!/database/data/.gitkeep
+*.mv.db
+*.trace.db
+
+# Editor y equipo
+.idea/
+.vscode/
+*.iml
+.DS_Store
+Thumbs.db
+.env
+.env.*

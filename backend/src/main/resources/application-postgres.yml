@@ -1,0 +1,9 @@
+spring:
+  datasource:
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/rutasur}
+    username: ${DB_USER:rutasur}
+    password: ${DB_PASSWORD:rutasur_dev}
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    hibernate:
+      ddl-auto: update # Solo demo; reemplazar por migraciones si se evoluciona.

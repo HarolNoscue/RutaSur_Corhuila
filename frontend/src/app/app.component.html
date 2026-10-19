@@ -1,0 +1,141 @@
+<header class="site-header">
+  <div class="shell topbar">
+    <div class="brand"><span class="brand-mark">✳</span><span>Ruta<strong>Sur</strong></span><small>HUILA · COLOMBIA</small>
+    </div>
+    <nav aria-label="Navegación principal">
+      <button [class.active]="pestana==='catalogo'" (click)="pestana='catalogo'">Experiencias</button>
+      <button [class.active]="pestana==='mis-reservas'" (click)="pestana='mis-reservas';cargarReservas()">Mis reservas</button>
+      <button [class.active]="pestana==='operador'" (click)="pestana='operador';cargarReservas()">Operador · demo</button>
+    </nav>
+  </div>
+</header>
+<main class="shell">
+  <section class="hero">
+    <p class="eyebrow">DESCUBRE EL SUR DE COLOMBIA</p>
+    <h1>Experiencias auténticas,<br><em>recuerdos inolvidables.</em>
+    </h1>
+    <p>Explora San Agustín, Isnos y el Desierto de la Tatacoa. Consulta cupos y reserva tu próxima aventura.</p>
+    <div class="hero-note">Prototipo académico · Los pagos son simulados</div>
+  </section>
+  <div *ngIf="error" class="alert alert-error" role="alert">{{error}}</div>
+  <div *ngIf="mensaje" class="alert alert-ok" role="status">{{mensaje}}</div>
+  <ng-container *ngIf="pestana==='catalogo'">
+    <h2>Experiencias para descubrir</h2>
+    <div class="cards">
+      <article class="experience" *ngFor="let e of experiencias">
+        <div class="card-media" [ngClass]="{'media-agustin':e.destino==='San Agustín','media-tatacoa':e.destino==='Desierto de la Tatacoa','media-isnos':e.destino==='Isnos'}"><span>{{e.destino}}</span>
+        </div>
+        <div class="card-body">
+          <h3>{{e.nombre}}</h3>
+          <p>{{e.descripcion}}</p>
+          <div class="detail"><strong>{{dinero(e.precio)}}</strong><span>{{e.capacidadDiaria}} cupos por fecha</span>
+          </div>
+          <button class="btn btn-outline" (click)="formulario.experienciaId=e.id;ocupacion=null;irAReserva()">Elegir experiencia →</button>
+        </div>
+      </article>
+    </div>
+    <section class="panel reservation" id="reserva-form">
+      <div>
+        <p class="eyebrow">RESERVA TU EXPERIENCIA</p>
+        <h2>Comprueba la disponibilidad</h2>
+        <p>Bloquearemos tus cupos durante 10 minutos mientras completas el pago simulado.</p>
+        <div class="form-grid">
+          <label>Experiencia<select [(ngModel)]="formulario.experienciaId" name="experiencia"><option *ngFor="let e of experiencias" [ngValue]="e.id">{{e.nombre}}</option>
+            </select>
+          </label>
+          <label>Fecha<input type="date" [(ngModel)]="formulario.fecha" name="fecha" required>
+          </label>
+          <label>Personas<input type="number" min="1" [(ngModel)]="formulario.personas" name="personas" required>
+          </label>
+          <label>Tu nombre<input [(ngModel)]="formulario.turista" name="turista" placeholder="Nombre y apellido">
+          </label>
+          <label>Correo<input type="email" [(ngModel)]="formulario.correo" name="correo" placeholder="tu@correo.com">
+          </label>
+        </div>
+        <div class="action-row">
+          <button class="btn btn-outline" [disabled]="cargando" (click)="consultarDisponibilidad()">Consultar cupos</button>
+          <button class="btn" [disabled]="cargando||!formulario.turista||!formulario.correo" (click)="bloquear()">Bloquear cupos</button>
+        </div>
+        <p class="availability" *ngIf="ocupacion"><strong>{{ocupacion.disponibles}}</strong> cupos disponibles de {{ocupacion.capacidad}} para {{ocupacion.fecha}}.</p>
+      </div>
+      <aside *ngIf="actual" class="confirmation"><span class="eyebrow">TU SOLICITUD</span>
+        <h3>{{actual.experiencia}}</h3>
+        <span class="status">{{actual.estado}}</span>
+        <p>{{actual.personas}} persona(s) · {{actual.fecha}}</p>
+        <p>Total: <strong>{{dinero(actual.total)}}</strong>
+        </p>
+        <p *ngIf="actual.estado==='BLOQUEADA'">Bloqueo hasta: {{actual.expiraEn | date:'short'}}</p>
+        <div *ngIf="actual.estado==='BLOQUEADA'" class="action-column">
+          <button class="btn" [disabled]="cargando" (click)="pagar(true)">Simular pago aprobado</button>
+          <button class="btn btn-outline" [disabled]="cargando" (click)="pagar(false)">Simular pago rechazado</button>
+        </div>
+        <button *ngIf="actual.estado==='CONFIRMADA'" class="btn" (click)="generarComprobante(actual)">Ver comprobante</button>
+      </aside>
+    </section>
+  </ng-container>
+  <section *ngIf="pestana==='mis-reservas'">
+    <h2>Historial de reservas</h2>
+    <p class="muted">En esta versión de demostración se muestran todas las reservas; todavía no hay autenticación.</p>
+    <div class="reservation-list">
+      <article class="booking" *ngFor="let r of reservas">
+        <div>
+          <h3>{{r.experiencia}}</h3>
+          <p>{{r.turista}} · {{r.fecha}} · {{r.personas}} persona(s)</p>
+          <span class="status">{{r.estado}}</span>
+        </div>
+        <div><strong>{{dinero(r.total)}}</strong>
+          <div class="action-row">
+            <button class="btn btn-small btn-outline" *ngIf="r.estado==='CONFIRMADA'" (click)="generarComprobante(r)">Comprobante</button>
+            <button class="btn btn-small btn-outline" *ngIf="r.estado==='BLOQUEADA'" (click)="cancelar(r)">Cancelar</button>
+          </div>
+        </div>
+        <div class="review" *ngIf="r.estado==='CONFIRMADA' && esPasada(r.fecha) && !r.valoracion">
+          <label>Calificación<select [(ngModel)]="valoracion.puntuacion"><option [ngValue]="5">5</option><option [ngValue]="4">4</option><option [ngValue]="3">3</option><option [ngValue]="2">2</option><option [ngValue]="1">1</option>
+            </select>
+          </label>
+          <input [(ngModel)]="valoracion.comentario" placeholder="Comparte tu experiencia">
+          <button class="btn btn-small" (click)="valorar(r)">Valorar</button>
+        </div>
+        <p *ngIf="r.valoracion" class="muted">★ {{r.valoracion.puntuacion}} · {{r.valoracion.comentario}}</p>
+      </article>
+    </div>
+  </section>
+  <section *ngIf="pestana==='operador'">
+    <p class="eyebrow">PANEL DE OPERADOR · DEMOSTRACIÓN</p>
+    <h2>Administra el catálogo</h2>
+    <div class="panel">
+      <div class="form-grid">
+        <label>Nombre de experiencia<input [(ngModel)]="nueva.nombre" placeholder="Nombre de la actividad">
+        </label>
+        <label>Destino<input [(ngModel)]="nueva.destino" placeholder="Municipio o lugar">
+        </label>
+        <label>Descripción<input [(ngModel)]="nueva.descripcion">
+        </label>
+        <label>Precio (COP)<input type="number" min="1" [(ngModel)]="nueva.precio">
+        </label>
+        <label>Capacidad diaria<input type="number" min="1" [(ngModel)]="nueva.capacidadDiaria">
+        </label>
+      </div>
+      <button class="btn" [disabled]="cargando||!nueva.nombre||!nueva.destino||!nueva.descripcion" (click)="crearExperiencia()">Crear experiencia</button>
+    </div>
+    <h2>Reservas registradas ({{reservas.length}})</h2>
+    <div class="booking operator-row" *ngFor="let r of reservas">
+      <div><strong>{{r.experiencia}}</strong>
+        <p>{{r.turista}} · {{r.fecha}}</p>
+      </div>
+      <span class="status">{{r.estado}}</span><span>{{r.personas}} cupo(s)</span>
+    </div>
+  </section>
+  <section *ngIf="comprobante" class="receipt panel" id="comprobante">
+    <p class="eyebrow">COMPROBANTE DE RESERVA</p>
+    <h2>{{comprobante.numero}}</h2>
+    <p><strong>Experiencia:</strong> {{comprobante.experiencia}} · {{comprobante.destino}}</p>
+    <p><strong>Fecha:</strong> {{comprobante.fecha}}</p>
+    <p><strong>Turista:</strong> {{comprobante.turista}}</p>
+    <p><strong>Personas:</strong> {{comprobante.personas}}</p>
+    <p><strong>Total:</strong> {{dinero(comprobante.total)}}</p>
+    <p>{{comprobante.mensaje}}</p>
+    <button class="btn btn-outline no-print" (click)="imprimir()">Imprimir / Guardar en PDF</button>
+  </section>
+</main>
+<footer class="shell footer">RutaSur · Prototipo académico · CORHUILA · Sin pagos reales ni autenticación</footer>
