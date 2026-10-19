@@ -19,12 +19,12 @@ repositorios ni instalar un motor de base de datos.
 
 ```text
 RutaSur-v1/
-├── frontend/                    Angular 19 (proyecto independiente)
+├── frontend/                   
 │   ├── src/app/
 │   ├── package.json
 │   ├── angular.json
 │   └── README.md
-├── backend/                     Spring Boot 3.4 / Maven (proyecto independiente)
+├── backend/                     
 │   ├── src/main/java/com/rutasur/
 │   │   ├── controller/
 │   │   ├── service/
@@ -36,11 +36,11 @@ RutaSur-v1/
 │   ├── pom.xml
 │   └── README.md
 ├── database/
-│   ├── data/                    Archivos locales H2 (no incluidos en Git)
-│   ├── compose.yml              PostgreSQL opcional
+│   ├── data/                    
+│   ├── compose.yml              
 │   └── README.md
-├── docs/                        Especificaciones, arquitectura y reglas
-├── scripts/                     Prueba de política de cupos
+├── docs/                       
+├── scripts/                     
 └── README.md
 ```
 Para ejecutar abrir terminal en intellij y ejecutar 
